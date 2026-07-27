@@ -48,10 +48,6 @@ public class PlayerController : MonoBehaviour
     public Transform attackPoint;      
     public Transform attackPointUp;     
     public Transform attackPointDown;  
-<<<<<<< Updated upstream
-=======
-    public LayerMask attackLayer;
->>>>>>> Stashed changes
     private bool isGrounded;
     private bool facingRight = true;
     private bool isAttacking;
@@ -189,10 +185,6 @@ public class PlayerController : MonoBehaviour
         if (selectedVfx != null && spawnPoint != null)
         {
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-<<<<<<< Updated upstream
-            Quaternion rot = Quaternion.Euler(0f, 0f, angle);
-            Instantiate(selectedVfx, spawnPoint.position, rot);
-=======
             Quaternion rot = Quaternion.Euler(0f, 0f, 0f);
             GameObject vfx = Instantiate(selectedVfx, (Vector3)origin, rot);
             Destroy(vfx, 0.05f);
@@ -213,7 +205,6 @@ public class PlayerController : MonoBehaviour
 
             hitOnce.Add(hit.collider);
             hit.collider.gameObject.SendMessage("TakeDamage", attackDamage, SendMessageOptions.DontRequireReceiver);
->>>>>>> Stashed changes
         }
 
         yield return new WaitForSeconds(attackDuration);
