@@ -35,10 +35,14 @@ public class PlayerController : MonoBehaviour
     public GameObject whipParticlePrefabUp;     
     public GameObject whipParticlePrefabDown;   
     [Range(0f, 1f)] public float attackMoveMultiplier = 0.35f; 
+    public float vfxRotationOffset = 0f; // add this
     private float attackCooldownTimer;
     public float attackInputThreshold = 0.5f;
     public bool allowDownAttackOnGround = false;
     private Vector2 currentAttackDirection = Vector2.right;
+    public float whipRadius = 0.5f;
+    public float attackDamage = 1f;
+    public LayerMask attackLayer;
 
     // Checks
     public Transform groundCheck;
@@ -173,6 +177,33 @@ public class PlayerController : MonoBehaviour
         return whipParticlePrefab;
     }
 
+    private Quaternion GetAttackRotation(Vector2 direction)
+    {
+        return GetAttackRotation(direction, GetAttackVfxPrefab(direction));
+    }
+
+    private Quaternion GetAttackRotation(Vector2 direction, GameObject selectedVfx)
+    {
+        // If using dedicated vertical prefabs, assume they are already oriented correctly.
+        if (direction == Vector2.up && selectedVfx == whipParticlePrefabUp && whipParticlePrefabUp != null)
+            return Quaternion.Euler(0f, 0f, vfxRotationOffset);
+
+        if (direction == Vector2.down && selectedVfx == whipParticlePrefabDown && whipParticlePrefabDown != null)
+            return Quaternion.Euler(0f, 0f, vfxRotationOffset);
+
+        // Fallback rotation for shared prefab
+        if (direction == Vector2.up) return Quaternion.Euler(0f, 0f, 90f + vfxRotationOffset);
+        if (direction == Vector2.down) return Quaternion.Euler(0f, 0f, -90f + vfxRotationOffset);
+        if (direction == Vector2.left) return Quaternion.Euler(0f, 0f, 180f + vfxRotationOffset);
+        return Quaternion.Euler(0f, 0f, 0f + vfxRotationOffset); // right
+    }
+
+    private Vector2 GetAttackSpawnPosition(Vector2 direction, Transform spawnPoint)
+    {
+        if (spawnPoint == null) return transform.position;
+        return spawnPoint.position; // use the actual attack point for all directions
+    }
+
     IEnumerator WhipAttack()
     {
         isAttacking = true;
@@ -184,14 +215,14 @@ public class PlayerController : MonoBehaviour
 
         if (selectedVfx != null && spawnPoint != null)
         {
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            Quaternion rot = Quaternion.Euler(0f, 0f, 0f);
-            GameObject vfx = Instantiate(selectedVfx, (Vector3)origin, rot);
+            Vector2 spawnPos = GetAttackSpawnPosition(direction, spawnPoint);
+            Quaternion rot = GetAttackRotation(direction, selectedVfx);
+            GameObject vfx = Instantiate(selectedVfx, spawnPos, rot);
             Destroy(vfx, 0.05f);
         }
 
-
         Vector2 playerPos = transform.position;
+        Vector2 origin = spawnPoint.position;
         Vector2 toAttackPoint = origin - playerPos;
         float castDistance = toAttackPoint.magnitude;
 
